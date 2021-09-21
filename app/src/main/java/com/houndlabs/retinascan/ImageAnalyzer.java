@@ -17,10 +17,6 @@ import org.tensorflow.lite.support.common.TensorOperator;
 import org.tensorflow.lite.support.common.ops.NormalizeOp;
 import org.tensorflow.lite.support.image.ImageProcessor;
 import org.tensorflow.lite.support.image.TensorImage;
-import org.tensorflow.lite.support.image.ops.ResizeOp;
-import org.tensorflow.lite.support.image.ops.ResizeOp.ResizeMethod;
-import org.tensorflow.lite.support.image.ops.ResizeWithCropOrPadOp;
-import org.tensorflow.lite.support.image.ops.Rot90Op;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 import java.io.IOException;
@@ -102,7 +98,7 @@ public class ImageAnalyzer {
 
     Trace.beginSection("loadImage");
     long startTimeForLoadImage = SystemClock.uptimeMillis();
-    inputImageBuffer = loadImage(bitmap);
+    inputImageBuffer = normalizeImage(bitmap);
     long endTimeForLoadImage = SystemClock.uptimeMillis();
     Trace.endSection();
     Log.v(TAG, "Timecost to load the image: " + (endTimeForLoadImage - startTimeForLoadImage));
@@ -145,7 +141,7 @@ public class ImageAnalyzer {
   }
 
   /** Loads input image, and applies preprocessing. */
-  private TensorImage loadImage(final Bitmap bitmap) {
+  private TensorImage normalizeImage(final Bitmap bitmap) {
    // Bitmap scaledAndCropped = crop(scale(bitmap));
 
     // Loads bitmap into a TensorImage.
