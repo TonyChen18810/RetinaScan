@@ -2,6 +2,8 @@ package com.houndlabs.retinascan;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.os.SystemClock;
 import android.os.Trace;
 import android.util.Log;
@@ -94,13 +96,13 @@ public class ImageAnalyzer {
   }
 
   /** Runs inference and returns the  results. */
-  public float[] analyze(final Bitmap bitmap, int sensorOrientation) {
+  public float[] analyze(final Bitmap bitmap) {
     // Logs this method so that it can be analyzed with systrace.
     Trace.beginSection("analyze");
 
     Trace.beginSection("loadImage");
     long startTimeForLoadImage = SystemClock.uptimeMillis();
-    inputImageBuffer = loadImage(bitmap, sensorOrientation);
+    inputImageBuffer = loadImage(bitmap);
     long endTimeForLoadImage = SystemClock.uptimeMillis();
     Trace.endSection();
     Log.v(TAG, "Timecost to load the image: " + (endTimeForLoadImage - startTimeForLoadImage));
@@ -143,35 +145,55 @@ public class ImageAnalyzer {
   }
 
   /** Loads input image, and applies preprocessing. */
-  private TensorImage loadImage(final Bitmap bitmap, int sensorOrientation) {
+  private TensorImage loadImage(final Bitmap bitmap) {
+   // Bitmap scaledAndCropped = crop(scale(bitmap));
+
     // Loads bitmap into a TensorImage.
     inputImageBuffer.load(bitmap);
 
-    // Creates processor for the TensorImage.
-    int cropSize = min(bitmap.getWidth(), bitmap.getHeight());
-    int numRotation = sensorOrientation / 90;
-    // TODO(b/143564309): Fuse ops inside ImageProcessor.
     ImageProcessor imageProcessor =
         new ImageProcessor.Builder()
-            .add(new ResizeWithCropOrPadOp(cropSize, cropSize))
-            // TODO(b/169379396): investigate the impact of the resize algorithm on accuracy.
-            // To get the same inference results as lib_task_api, which is built on top of the Task
-            // Library, use ResizeMethod.BILINEAR.
-            .add(new ResizeOp(imageSizeX, imageSizeY, ResizeMethod.NEAREST_NEIGHBOR))
-            .add(new Rot90Op(numRotation))
             .add(getPreprocessNormalizeOp())
             .build();
     return imageProcessor.process(inputImageBuffer);
   }
 
+  private Bitmap scale(Bitmap input) {
+    final int targetWidth = 504;
+    final int targetHeight = 378;
+    return Bitmap.createScaledBitmap(input, targetWidth, targetHeight, true);
+  }
+
+  private Bitmap crop(Bitmap input){
+    final int targetWidth  = 434;
+    final int targetHeight = 363;
+
+    Bitmap output = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
+
+    int dstL = 0;
+    int dstR = targetWidth;
+    int srcL = 20;
+    int srcR = srcL + targetWidth;
+    int dstT = 0;
+    int dstB = targetHeight;
+    int srcT = 15;
+    int srcB = srcT + targetHeight;
+
+    Rect src = new Rect(srcL, srcT, srcR, srcB);
+    Rect dst = new Rect(dstL, dstT, dstR, dstB);
+
+    new Canvas(output).drawBitmap(input, src, dst, null);
+
+    return output;
+  }
   /** Gets the name of the model file stored in Assets. */
   protected  String getModelPath(){
-    return "model";
+    return "retina.tflite";
   }
 
   /** Gets the TensorOperator to nomalize the input image in preprocessing. */
   protected  TensorOperator getPreprocessNormalizeOp(){
-      return new NormalizeOp(0, 255);
+      return new NormalizeOp(0, 255.0f);
   }
 
 }

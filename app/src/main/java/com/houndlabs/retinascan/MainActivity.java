@@ -38,9 +38,26 @@ public class MainActivity extends AppCompatActivity {
         v1 = findViewById(R.id.v1);
         v2 = findViewById(R.id.v2);
 
-        processImage();
+        analyzeImage();
     }
 
+    private void analyzeImage(){
+        BitmapDrawable drawable = (BitmapDrawable) getResources().getDrawable(R.drawable.test, getTheme());
+        Bitmap bitmap = crop(scale(drawable.getBitmap()));
+
+        this.imageView.setImageBitmap(bitmap);
+
+        try {
+            ImageAnalyzer analyzer = ImageAnalyzer.create(this, 2);
+            float[] steps =  analyzer.analyze(bitmap);
+            this.v1.setText(String.valueOf(steps[0]));
+            this.v2.setText(String.valueOf(steps[1]));
+
+        }catch (Exception exception){
+
+        }
+
+    }
     private void processImage() {
         try {
             Model model = Model.newInstance(this);
