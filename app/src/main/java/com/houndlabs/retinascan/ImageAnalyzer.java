@@ -189,7 +189,7 @@ public class ImageAnalyzer {
 
   /** Gets the TensorOperator to nomalize the input image in preprocessing. */
   protected  TensorOperator getPreprocessNormalizeOp(){
-      return new NormalizeOp(0, 255.0f);
+      return new CustomNormalizeOp();
   }
 
 }
