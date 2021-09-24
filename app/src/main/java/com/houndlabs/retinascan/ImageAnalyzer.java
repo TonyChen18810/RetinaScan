@@ -2,6 +2,7 @@ package com.houndlabs.retinascan;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.SystemClock;
@@ -20,6 +21,7 @@ import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.MappedByteBuffer;
 
 import static java.lang.Math.min;
@@ -94,6 +96,12 @@ public class ImageAnalyzer {
     outputBuffer = TensorBuffer.createFixedSize(outputShape, outputDataType);
 
     Log.d(TAG, "Created a Tensorflow Lite Image ImageAnalyzer.");
+  }
+
+  /** Runs inference and returns the  results. */
+  public void analyze(final String input) {
+    Bitmap bitmap =  BitmapFactory.decodeFile(input);
+    analyze(bitmap);
   }
 
   /** Runs inference and returns the  results. */
