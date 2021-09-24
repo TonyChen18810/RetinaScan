@@ -52,6 +52,11 @@ public class ImageAnalyzer {
   /** Output TensorBuffer. */
   private final TensorBuffer outputBuffer;
 
+  public  long preprocessingTime;
+  public  long inferenceTime;
+  public float[] result;
+  public Bitmap bitmap;
+
   /**
    * Creates a ImageAnalyzer with the provided configuration.
    *
@@ -92,16 +97,18 @@ public class ImageAnalyzer {
   }
 
   /** Runs inference and returns the  results. */
-  public float[] analyze(final Bitmap bitmap) {
+  public void analyze(final Bitmap input) {
     // Logs this method so that it can be analyzed with systrace.
     Trace.beginSection("analyze");
 
     Trace.beginSection("loadImage");
     long startTimeForLoadImage = SystemClock.uptimeMillis();
+    bitmap = crop(scale(input));
     inputImageBuffer = normalizeImage(bitmap);
     long endTimeForLoadImage = SystemClock.uptimeMillis();
     Trace.endSection();
-    Log.v(TAG, "Timecost to load the image: " + (endTimeForLoadImage - startTimeForLoadImage));
+    preprocessingTime = endTimeForLoadImage - startTimeForLoadImage;
+    Log.v(TAG, "Timecost to preprocess the image: " + (preprocessingTime));
 
     // Runs the inference call.
     Trace.beginSection("runInference");
@@ -109,9 +116,10 @@ public class ImageAnalyzer {
     tflite.run(inputImageBuffer.getBuffer(), outputBuffer.getBuffer().rewind());
     long endTimeForReference = SystemClock.uptimeMillis();
     Trace.endSection();
-    Log.v(TAG, "Timecost to run model inference: " + (endTimeForReference - startTimeForReference));
+    inferenceTime = endTimeForReference - startTimeForReference;
+    Log.v(TAG, "Timecost to run model inference: " + (inferenceTime));
 
-    return outputBuffer.getFloatArray();
+    result =  outputBuffer.getFloatArray();
   }
 
   /** Closes the interpreter and model to release resources. */

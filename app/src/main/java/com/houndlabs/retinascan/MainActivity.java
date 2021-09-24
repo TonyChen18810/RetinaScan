@@ -43,88 +43,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void analyzeImage(){
         BitmapDrawable drawable = (BitmapDrawable) getResources().getDrawable(R.drawable.test, getTheme());
-        Bitmap bitmap = crop(scale(drawable.getBitmap()));
-
-        this.imageView.setImageBitmap(bitmap);
+        Bitmap bitmap = drawable.getBitmap();
 
         try {
             ImageAnalyzer analyzer = ImageAnalyzer.create(this, 2);
-            float[] steps =  analyzer.analyze(bitmap);
-            this.v1.setText(String.valueOf(steps[0]));
-            this.v2.setText(String.valueOf(steps[1]));
+            analyzer.analyze(bitmap);
+            this.imageView.setImageBitmap(analyzer.bitmap);
+            this.v1.setText(String.valueOf(analyzer.result[0]));
+            this.v2.setText(String.valueOf(analyzer.result[1]));
 
         }catch (Exception exception){
 
         }
 
-    }
-    private void processImage() {
-        try {
-            Model model = Model.newInstance(this);
-
-            BitmapDrawable drawable = (BitmapDrawable) getResources().getDrawable(R.drawable.test, getTheme());
-            Bitmap bitmap = crop(scale(drawable.getBitmap()));
-
-            this.imageView.setImageBitmap(bitmap);
-
-            // Creates inputs for reference.
-            TensorImage image = TensorImage.fromBitmap(bitmap);
-
-           // TensorImage image2 = normalize(image);
-
-            // Runs model inference and gets result.
-            Model.Outputs outputs = model.process(image);
-            TensorBuffer calculatedSteps = outputs.getCalculatedStepsAsTensorBuffer();
-            float [] steps = calculatedSteps.getFloatArray();
-
-            this.v1.setText(String.valueOf(steps[0]));
-            this.v2.setText(String.valueOf(steps[1]));
-
-            // Releases model resources if no longer used.
-            model.close();
-        } catch (IOException e) {
-
-        }
-    }
-
-    private Bitmap scale(Bitmap input) {
-        final int targetWidth = 504;
-        final int targetHeight = 378;
-        return Bitmap.createScaledBitmap(input, targetWidth, targetHeight, true);
-    }
-
-    private Bitmap crop(Bitmap input){
-        final int targetWidth  = 434;
-        final int targetHeight = 363;
-
-        Bitmap output = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
-
-        int dstL = 0;
-        int dstR = targetWidth;
-        int srcL = 20;
-        int srcR = srcL + targetWidth;
-        int dstT = 0;
-        int dstB = targetHeight;
-        int srcT = 15;
-        int srcB = srcT + targetHeight;
-
-        Rect src = new Rect(srcL, srcT, srcR, srcB);
-        Rect dst = new Rect(dstL, dstT, dstR, dstB);
-
-        new Canvas(output).drawBitmap(input, src, dst, null);
-
-        return output;
-    }
-
-    private TensorImage normalize(TensorImage inputImageBuffer) {
-        ImageProcessor imageProcessor =
-                new ImageProcessor.Builder()
-                        .add(getPreprocessNormalizeOp())
-                        .build();
-        return imageProcessor.process(inputImageBuffer);
-    }
-
-    protected TensorOperator getPreprocessNormalizeOp() {
-        return new NormalizeOp(new float[] {127.5f }, new float[] {127.5f});
     }
 }
