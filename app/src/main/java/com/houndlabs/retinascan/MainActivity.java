@@ -164,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         FileWriter writer = new FileWriter(path);
+        writer.write("File, Preprocessing Time, Inference Time, V1, V2 \n");
         for (Result r: results
              ) {
             writer.write(r.file + "," + r.preProcessingTime + "," +
