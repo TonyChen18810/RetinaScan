@@ -11,6 +11,7 @@ import android.util.Log;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.gpu.CompatibilityList;
 import org.tensorflow.lite.gpu.GpuDelegate;
 import org.tensorflow.lite.nnapi.NnApiDelegate;
 import org.tensorflow.lite.support.common.FileUtil;
@@ -73,6 +74,18 @@ public class ImageAnalyzer {
   /** Initializes a {@code Classifier}. */
   protected ImageAnalyzer(Activity activity,  int numThreads) throws IOException {
     MappedByteBuffer tfliteModel = FileUtil.loadMappedFile(activity, getModelPath());
+
+    CompatibilityList compatList = new CompatibilityList();
+
+    if(compatList.isDelegateSupportedOnThisDevice()){
+      // if the device has a supported GPU, add the GPU delegate
+      GpuDelegate.Options delegateOptions = compatList.getBestOptionsForThisDevice();
+      GpuDelegate gpuDelegate = new GpuDelegate(delegateOptions);
+      tfliteOptions.addDelegate(gpuDelegate);
+    } else {
+      // if the GPU is not supported, run on 4 threads
+      tfliteOptions.setNumThreads(4);
+    }
 
     tfliteOptions.setNumThreads(numThreads);
     tflite = new Interpreter(tfliteModel, tfliteOptions);
