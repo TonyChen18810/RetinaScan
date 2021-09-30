@@ -86,8 +86,6 @@ public class ImageAnalyzer {
       // if the GPU is not supported, run on 4 threads
       tfliteOptions.setNumThreads(4);
     }
-
-    tfliteOptions.setNumThreads(numThreads);
     tflite = new Interpreter(tfliteModel, tfliteOptions);
 
     // Reads type and shape of input and output tensors, respectively.
