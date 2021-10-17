@@ -25,6 +25,7 @@
         </activity>
         <activity android:name=".MainActivity">
         </activity>
+        <service android:enabled="true" android:name=".UartService" />
     </application>
 
 </manifest>

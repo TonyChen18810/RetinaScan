@@ -31,6 +31,8 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener {
+    private final String deviceAddess = "D8:4B:33:33:70:90";
+    private DeviceController deviceController;
     private ProcessCameraProvider cameraProvider;
     private PreviewView previewView;
     private ImageCapture imageCapture;
@@ -71,8 +73,12 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         zoomOut = findViewById(R.id.zoomOut);
         zoomOut.setOnClickListener(this);
 
+        deviceController = new DeviceController();
+        deviceController.serviceInit(this);
+
         if(allPermissionsGranted()){
             startCamera(); //start camera if permission has been granted by user
+            deviceController.connect(deviceAddess);
         } else{
             requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         }
@@ -181,6 +187,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
                 startCamera();
+                deviceController.connect(deviceAddess);
             } else {
                 Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_SHORT).show();
             }
