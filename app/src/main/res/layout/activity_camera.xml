@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_margin="6dp"
+    >
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/previewContainer"
+        android:layout_marginTop="6dp"
+        app:cardCornerRadius="6dp"
+        android:elevation="16dp"
+        app:cardBackgroundColor="#28dddddd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/viewFinder"
+            android:layout_width="match_parent"
+            android:layout_height="335dp"/>
+    </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/left"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Left"  />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="Right"  />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/up"
+                android:layout_marginLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Up"  />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/down"
+                android:layout_marginLeft="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Down"  />
+
+        </LinearLayout>
+    <LinearLayout
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/zoomIn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Zoom In"  />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/zoomOut"
+        android:layout_marginLeft="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Zoom out"  />
+    </LinearLayout>
+    <ImageButton
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_gravity="center"
+        android:src="@android:drawable/ic_menu_camera"
+        android:id="@+id/button_take_picture"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="fitCenter"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        />
+
+</LinearLayout>
+
+
+

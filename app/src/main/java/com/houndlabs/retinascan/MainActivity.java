@@ -20,8 +20,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.houndlabs.retinascan.ml.Model;
-
 import org.checkerframework.checker.units.qual.A;
 import org.tensorflow.lite.support.common.TensorOperator;
 import org.tensorflow.lite.support.common.ops.NormalizeOp;
