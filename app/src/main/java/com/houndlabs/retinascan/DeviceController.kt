@@ -215,6 +215,9 @@ class DeviceController() {
             if (!mService!!.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth")
 //                finish()
+            }else{
+                val intent = Intent(CameraActivity.DEVICE_CONTROLL_CONNECTED)
+                LocalBroadcastManager.getInstance(mService!!).sendBroadcast(intent)
             }
         }
 

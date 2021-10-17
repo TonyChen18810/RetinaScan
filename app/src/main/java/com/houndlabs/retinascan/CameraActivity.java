@@ -1,6 +1,9 @@
 package com.houndlabs.retinascan;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -29,6 +32,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener {
     private final String deviceAddess = "D8:4B:33:33:70:90";
@@ -44,6 +48,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.BLUETOOTH"};
 
+    public final static String DEVICE_CONTROLL_CONNECTED =
+            "com.nordicsemi.device.controll.connected";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,14 +82,21 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         deviceController = new DeviceController();
         deviceController.serviceInit(this);
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, getIntentFilter());
+
         if(allPermissionsGranted()){
             startCamera(); //start camera if permission has been granted by user
-            deviceController.connect(deviceAddess);
         } else{
             requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         }
     }
 
+
+    private IntentFilter getIntentFilter()  {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(DEVICE_CONTROLL_CONNECTED);
+        return intentFilter;
+    }
     @Override
     public void onClick(View view) {
         int viewId = view.getId();
@@ -187,11 +200,19 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
                 startCamera();
-                deviceController.connect(deviceAddess);
             } else {
                 Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_SHORT).show();
             }
         }
     }
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction() == DEVICE_CONTROLL_CONNECTED) {
+                deviceController.connect(deviceAddess);
+            }
+        }
+    };
 }
 
