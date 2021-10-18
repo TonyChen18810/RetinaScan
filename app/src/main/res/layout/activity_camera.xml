@@ -21,7 +21,15 @@
             android:layout_width="match_parent"
             android:layout_height="335dp"/>
     </com.google.android.material.card.MaterialCardView>
+<TextView
+    android:id="@+id/status"
+    android:layout_width="match_parent"
+    android:maxLines="6"
+    android:scrollbars="vertical"
+    android:layout_height="80dp"
+    android:layout_margin="10dp" >
 
+</TextView>
         <LinearLayout
             android:layout_marginTop="16dp"
             android:gravity="center_vertical"
@@ -75,6 +83,13 @@
         android:layout_height="wrap_content"
         android:text="Zoom out"  />
     </LinearLayout>
+    <LinearLayout
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
     <ImageButton
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
@@ -86,7 +101,18 @@
         android:scaleType="fitCenter"
         android:background="?attr/selectableItemBackgroundBorderless"
         />
-
+        <ImageButton
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_menu_zoom"
+            android:id="@+id/auto"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:scaleType="fitCenter"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            />
+    </LinearLayout>
 </LinearLayout>
 
 

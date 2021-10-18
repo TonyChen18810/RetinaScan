@@ -10,8 +10,10 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -42,6 +44,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private ImageCapture imageCapture;
     private View takePicture, previewContainer;
     private View left, right, up, down, zoomIn, zoomOut;
+    private TextView status;
 
     private int REQUEST_CODE_PERMISSIONS = 1001;
     private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA",
@@ -79,6 +82,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         zoomOut = findViewById(R.id.zoomOut);
         zoomOut.setOnClickListener(this);
 
+        status = findViewById(R.id.status);
+        status.setMovementMethod(new ScrollingMovementMethod());
+
         deviceController = new DeviceController();
         deviceController.serviceInit(this);
 
@@ -95,16 +101,34 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private IntentFilter getIntentFilter()  {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(DEVICE_CONTROLL_CONNECTED);
+        intentFilter.addAction(UartService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(UartService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(UartService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(UartService.ACTION_DATA_AVAILABLE);
+        intentFilter.addAction(UartService.DEVICE_DOES_NOT_SUPPORT_UART);
         return intentFilter;
     }
     @Override
     public void onClick(View view) {
+        int movement = 100;
         int viewId = view.getId();
        if (viewId == takePicture.getId()){
             if (imageCapture != null ){
                 captureImage();
             }
-        }
+        }else if (viewId == left.getId()){
+           deviceController.moveX(-1* movement);
+       } else if (viewId == right.getId()){
+            deviceController.moveX( movement);
+        } else if (viewId == up.getId()){
+            deviceController.moveY(movement);
+        } else if (viewId == down.getId()) {
+           deviceController.moveY(-1 * movement);
+       } else if (viewId == zoomIn.getId()) {
+           deviceController.moveZ(-1 * movement);
+       } else if (viewId == zoomOut.getId()) {
+           deviceController.moveZ(movement);
+       }
     }
 
     private void startCamera() {
@@ -209,8 +233,12 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+
+            status.append(intent.getAction() + "\n");
+
             if (intent.getAction() == DEVICE_CONTROLL_CONNECTED) {
                 deviceController.connect(deviceAddess);
+                status.append("Connecting to device " + deviceAddess + "\n");
             }
         }
     };

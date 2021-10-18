@@ -117,6 +117,58 @@ class DeviceController() {
             }
         }, 1000);
     }
+    fun moveX(v: Int){
+        if (v > 0){
+            val b2 = v
+            var b3: Int = 1
+            if (b2 >  255){
+                b3 = b2 / 255
+            }
+            writeRx(0x05, b2.toByte(), b3.toByte())
+        }else if (v<0){
+            val b2 = v * -1;
+            var b3: Int = 1
+            if (b2 >  255){
+                b3 = b2 / 255
+            }
+            writeRx(0x04, b2.toByte(), b3.toByte())
+        }
+    }
+
+    fun moveY(v: Int) {
+        if (v> 0){
+            val b2 = v
+            var b3: Int = 1
+            if (b2 >  255){
+                b3 = b2 / 255
+            }
+            writeRx(0x08, b2.toByte(), b3.toByte())  // z
+        }else if (v<0){
+            val b2 = v * -1;
+            var b3: Int = 1
+            if (b2 >  255){
+                b3 = b2 / 255
+            }
+            writeRx(0x07, b2.toByte(), b3.toByte())  // z
+        }
+    }
+    fun moveZ(v: Int) {
+        if (v> 0){
+            val b2 = v
+            var b3: Int = 1
+            if (b2 >  255){
+                b3 = b2 / 255
+            }
+            writeRx(0x10, b2.toByte(), b3.toByte())  // z
+        }else if (v<0){
+            val b2 = v * -1;
+            var b3: Int = 1
+            if (b2 >  255){
+                b3 = b2 / 255
+            }
+            writeRx(0x09, b2.toByte(), b3.toByte())  // z
+        }
+    }
     fun processSeg(handler: Handler,  path: List<StepData>, count : Int){
         handler.postDelayed( Runnable {
             val seg = path[count];
@@ -206,6 +258,10 @@ class DeviceController() {
         // writeRx(0x08, 0x50, 0x01);
     }
 
+    fun sendUpdateMessage(action: String){
+        val intent = Intent(action)
+        LocalBroadcastManager.getInstance(mService!!).sendBroadcast(intent)
+    }
 
     //UART service connected/disconnected
     private val mServiceConnection: ServiceConnection = object : ServiceConnection {
@@ -216,8 +272,7 @@ class DeviceController() {
                 Log.e(TAG, "Unable to initialize Bluetooth")
 //                finish()
             }else{
-                val intent = Intent(CameraActivity.DEVICE_CONTROLL_CONNECTED)
-                LocalBroadcastManager.getInstance(mService!!).sendBroadcast(intent)
+              sendUpdateMessage(CameraActivity.DEVICE_CONTROLL_CONNECTED)
             }
         }
 
