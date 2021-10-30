@@ -66,7 +66,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private Handler mHandler;
     public static final UUID RX_SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
     private static final long SCAN_PERIOD = 10000;
-    private HashSet<String> addresses = new HashSet<>();
+    private HashSet<String> addresses = new HashSet<String>();
 
     private int REQUEST_CODE_PERMISSIONS = 1001;
     private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA",
@@ -170,9 +170,10 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                     public void run() {
                         mScanning = false;
                         mLeScanner.stopScan(mLeScanCallback);
-                        status.append("Found " + String.valueOf(addresses.size()) + " devices");
-                        if (addresses.size() == 1){
-
+                        List<String> list = new ArrayList<String>(addresses);
+                        status.append("Found " + String.valueOf(list.size()) + " devices");
+                        if (list.size() == 1){
+                                deviceController.connect(list.get(0));
                         }
                     }
                 }, SCAN_PERIOD);

@@ -381,7 +381,7 @@ class DeviceController() {
 
     fun connect(deviceAddress: String?) {
         Log.d(TAG, "... onActivityResultdevice.address==" + deviceAddress + "mserviceValue" + mService)
-       // mService?.connect(deviceAddress)
+        mService?.connect(deviceAddress)
 
     }
 }
