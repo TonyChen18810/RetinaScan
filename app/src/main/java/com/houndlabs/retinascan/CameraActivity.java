@@ -1,5 +1,12 @@
 package com.houndlabs.retinascan;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +17,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.ParcelUuid;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
@@ -20,8 +29,12 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import androidx.annotation.NonNull;
@@ -35,6 +48,7 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import kotlin.collections.AbstractMutableMap;
 
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener {
     private final String deviceAddess = "D8:4B:33:33:70:90";
@@ -46,10 +60,22 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private View left, right, up, down, zoomIn, zoomOut;
     private TextView status;
 
+    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothLeScanner mLeScanner;
+    private boolean mScanning = false;
+    private Handler mHandler;
+    public static final UUID RX_SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+    private static final long SCAN_PERIOD = 10000;
+    private HashSet<String> addresses = new HashSet<>();
+
     private int REQUEST_CODE_PERMISSIONS = 1001;
     private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA",
             "android.permission.WRITE_EXTERNAL_STORAGE",
-            "android.permission.BLUETOOTH"};
+            "android.permission.BLUETOOTH",
+            "android.permission.BLUETOOTH_ADMIN",
+            "android.permission.ACCESS_FINE_LOCATION",
+            "android.permission.ACCESS_COARSE_LOCATION",
+    };
 
     public final static String DEVICE_CONTROLL_CONNECTED =
             "com.nordicsemi.device.controll.connected";
@@ -85,19 +111,89 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         status = findViewById(R.id.status);
         status.setMovementMethod(new ScrollingMovementMethod());
 
-        deviceController = new DeviceController();
-        deviceController.serviceInit(this);
+
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, getIntentFilter());
 
         if(allPermissionsGranted()){
             startCamera(); //start camera if permission has been granted by user
+            deviceController = new DeviceController();
+            deviceController.serviceInit(this);
         } else{
             requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         }
+
+        final BluetoothManager bluetoothManager =
+                (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+        mLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+        mHandler = new Handler();
+
     }
 
 
+    // Device scan callback.
+    private ScanCallback mLeScanCallback =
+            new ScanCallback() {
+                @Override
+                public void onScanResult(int callbackType, final ScanResult result) {
+                    runOnUiThread( new  Runnable() {
+                        @Override
+                        public void run() {
+                            String address =  result.getDevice().getAddress();
+                            if (!addresses.contains(address)){
+                                status.append("Found devices " + address + "\n");
+                                addresses.add(address);
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onBatchScanResults(List<ScanResult> results) {
+                    super.onBatchScanResults(results);
+                }
+
+                @Override
+                public void onScanFailed(int errorCode) {
+                    super.onScanFailed(errorCode);
+                }
+            };
+
+    private void scanLeDevice(final boolean enable) {
+        if (mLeScanner != null) {
+            if (enable) {
+                // Stops scanning after a pre-defined scan period.
+                addresses.clear();
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mScanning = false;
+                        mLeScanner.stopScan(mLeScanCallback);
+                        status.append("Found " + String.valueOf(addresses.size()) + " devices");
+                        if (addresses.size() == 1){
+
+                        }
+                    }
+                }, SCAN_PERIOD);
+
+                mScanning = true;
+                ParcelUuid serviceID = new ParcelUuid(RX_SERVICE_UUID);
+                ScanFilter filter = new ScanFilter.Builder().setServiceUuid(serviceID).build();
+                ScanSettings settings = new ScanSettings.Builder()
+                        .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
+                        .build();
+                List<ScanFilter> filters = new ArrayList<>();
+                filters.add(filter);
+
+                mLeScanner.startScan(filters, settings, mLeScanCallback);
+            } else {
+                mScanning = false;
+                mLeScanner.stopScan(mLeScanCallback);
+            }
+        }
+        // invalidateOptionsMenu();
+    }
     private IntentFilter getIntentFilter()  {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(DEVICE_CONTROLL_CONNECTED);
@@ -224,6 +320,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
                 startCamera();
+                deviceController = new DeviceController();
+                deviceController.serviceInit(this);
             } else {
                 Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_SHORT).show();
             }
@@ -237,8 +335,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             status.append(intent.getAction() + "\n");
 
             if (intent.getAction() == DEVICE_CONTROLL_CONNECTED) {
-                deviceController.connect(deviceAddess);
-                status.append("Connecting to device " + deviceAddess + "\n");
+               // deviceController.connect(deviceAddess);
+                status.append("scanning for devices...\n");
+                scanLeDevice(true);
             }
         }
     };
