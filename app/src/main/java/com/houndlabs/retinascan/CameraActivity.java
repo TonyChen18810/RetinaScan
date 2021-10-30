@@ -1,5 +1,6 @@
 package com.houndlabs.retinascan;
 
+import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -81,6 +82,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     public final static String DEVICE_CONTROLL_CONNECTED =
             "com.nordicsemi.device.controll.connected";
+    private Dialog scanningMessageBox;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,6 +117,12 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
 
         enableControl(false);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(CameraActivity.this);
+        builder.setTitle("");
+        builder.setCancelable(false);
+        builder.setMessage("Scanning....");
+        scanningMessageBox = builder.create();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, getIntentFilter());
 
@@ -168,10 +176,12 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             if (enable) {
                 // Stops scanning after a pre-defined scan period.
                 addresses.clear();
+                scanningMessageBox.show();
                 mHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         mScanning = false;
+                        scanningMessageBox.hide();
                         mLeScanner.stopScan(mLeScanCallback);
                         List<String> list = new ArrayList<String>(addresses);
                         status.append("Found " + String.valueOf(list.size()) + " devices");
@@ -193,6 +203,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                         }else{
                             AlertDialog.Builder builder = new AlertDialog.Builder(CameraActivity.this);
                             builder.setTitle("Choose a BlueFruit");
+                            builder.setCancelable(false);
                             builder.setItems(list.toArray( new String[list.size()]), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
