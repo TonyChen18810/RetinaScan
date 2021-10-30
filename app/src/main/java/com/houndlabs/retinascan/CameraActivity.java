@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -38,6 +39,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
@@ -112,6 +114,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         status.setMovementMethod(new ScrollingMovementMethod());
 
 
+        enableControl(false);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, getIntentFilter());
 
@@ -172,8 +175,33 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                         mLeScanner.stopScan(mLeScanCallback);
                         List<String> list = new ArrayList<String>(addresses);
                         status.append("Found " + String.valueOf(list.size()) + " devices");
-                        if (list.size() == 1){
-                                deviceController.connect(list.get(0));
+
+                        if (list.size() <= 0){
+                            AlertDialog.Builder builder = new AlertDialog.Builder(CameraActivity.this);
+                            builder.setTitle("");
+                            builder.setMessage("No BlueFruit device were found!");
+                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    // You don't have to do anything here if you just
+                                    // want it dismissed when clicked
+                                }
+                            });
+
+                            builder.create().show();
+                    //    }else  if (list.size() == 1) {
+                     //       deviceController.connect(list.get(0));
+                        }else{
+                            AlertDialog.Builder builder = new AlertDialog.Builder(CameraActivity.this);
+                            builder.setTitle("Choose a BlueFruit");
+                            builder.setItems(list.toArray( new String[list.size()]), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    deviceController.connect(list.get(which));
+                                }
+                            });
+
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
                         }
                     }
                 }, SCAN_PERIOD);
@@ -340,7 +368,22 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 status.append("scanning for devices...\n");
                 scanLeDevice(true);
             }
+            if (intent.getAction() == UartService.ACTION_GATT_CONNECTED) {
+                enableControl(true);
+            }
+            if (intent.getAction() == UartService.ACTION_GATT_DISCONNECTED) {
+                enableControl(false);
+            }
         }
     };
+
+    private void enableControl(Boolean flag){
+        left.setEnabled(flag);
+        right.setEnabled(flag);
+        up.setEnabled(flag);
+        down.setEnabled(flag);
+        zoomIn.setEnabled(flag);
+        zoomOut.setEnabled(flag);
+    }
 }
 
