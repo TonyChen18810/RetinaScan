@@ -14,14 +14,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.drawable.ColorDrawable;
+import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.ParcelUuid;
 import android.text.method.ScrollingMovementMethod;
+import android.view.Surface;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -30,6 +36,9 @@ import android.widget.Toast;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,6 +54,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
+import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
@@ -54,7 +64,9 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import kotlin.collections.AbstractMutableMap;
 
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener {
-    private final String deviceAddess = "D8:4B:33:33:70:90";
+    private Handler handler;
+    private HandlerThread handlerThread;
+
     private DeviceController deviceController;
     private ProcessCameraProvider cameraProvider;
     private PreviewView previewView;
@@ -142,6 +154,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     }
 
+    protected synchronized void runInBackground(final Runnable r) {
+        if (handler != null) {
+            handler.post(r);
+        }
+    }
 
     // Device scan callback.
     private ScanCallback mLeScanCallback =
@@ -300,8 +317,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         ImageCapture.Builder builder = new ImageCapture.Builder();
 
         imageCapture = builder
-                .setTargetRotation(this.getWindowManager().getDefaultDisplay().getRotation())
-                .build();
+        .build();
+        imageCapture.setTargetRotation(Surface.ROTATION_0);
         preview.setSurfaceProvider(this.previewView.getSurfaceProvider());
 
         cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, preview, imageCapture);
@@ -316,12 +333,33 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     private void captureImage() {
         SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
-        File file = new File(getBatchDirectoryName(), mDateFormat.format(new Date())+ ".jpg");
+       // File file = new File(getBatchDirectoryName(), mDateFormat.format(new Date())+ ".jpg");
 
-        ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
-        imageCapture.takePicture(outputFileOptions, ContextCompat.getMainExecutor(this), new ImageCapture.OnImageSavedCallback() {
+        //ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
+//        imageCapture.takePicture(outputFileOptions, ContextCompat.getMainExecutor(this), new ImageCapture.OnImageSavedCallback() {
+//            @Override
+//            public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                    previewContainer.setForeground(new ColorDrawable(Color.WHITE));
+//                    previewContainer.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            previewContainer.setForeground(null);
+//                        }
+//                    }, 300);
+//                }
+//                //postImage(file.getAbsolutePath());
+//            }
+//
+//            @Override
+//            public void onError(@NonNull ImageCaptureException exception) {
+//
+//            }
+//        });
+        imageCapture.takePicture(ContextCompat.getMainExecutor(this), new ImageCapture.OnImageCapturedCallback() {
             @Override
-            public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
+            public void onCaptureSuccess(@NonNull ImageProxy image) {
+                super.onCaptureSuccess(image);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     previewContainer.setForeground(new ColorDrawable(Color.WHITE));
                     previewContainer.postDelayed(new Runnable() {
@@ -331,16 +369,40 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                         }
                     }, 300);
                 }
-                //postImage(file.getAbsolutePath());
+                runInBackground(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Image img = image.getImage();
+                            ByteBuffer buffer = img.getPlanes()[0].getBuffer();
+                            byte[] bytes = new byte[buffer.capacity()];
+                            buffer.get(bytes);
+                            Bitmap bmp = Rotate(BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null), 90);
+                            OutputStream outputStream = new FileOutputStream((getBatchDirectoryName() + mDateFormat.format(new Date()) + ".jpg"));
+                            bmp.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+                        }
+                        catch (Exception e) {
+
+                        }
+                        image.close();
+                    }
+                });
+
             }
 
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
-
+                super.onError(exception);
             }
         });
     }
 
+    private Bitmap Rotate(Bitmap source, float angle)
+    {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
 
     private boolean allPermissionsGranted() {
 
@@ -368,6 +430,29 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    @Override
+    public synchronized void onResume() {
+        super.onResume();
+
+        handlerThread = new HandlerThread("inference");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
+    }
+
+    @Override
+    public synchronized void onPause() {
+
+        handlerThread.quitSafely();
+        try {
+            handlerThread.join();
+            handlerThread = null;
+            handler = null;
+        } catch (final InterruptedException e) {
+
+        }
+
+        super.onPause();
+    }
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
