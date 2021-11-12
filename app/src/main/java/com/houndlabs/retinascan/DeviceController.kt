@@ -159,14 +159,14 @@ class DeviceController() {
             if (b2 >  255){
                 b3 = b2 / 255
             }
-            writeRx(0x10, b2.toByte(), b3.toByte())  // z
+            writeRx(0x11, b2.toByte(), b3.toByte())  // z
         }else if (v<0){
             val b2 = v * -1;
             var b3: Int = 1
             if (b2 >  255){
                 b3 = b2 / 255
             }
-            writeRx(0x09, b2.toByte(), b3.toByte())  // z
+            writeRx(0x10, b2.toByte(), b3.toByte())  // z
         }
     }
     fun processSeg(handler: Handler,  path: List<StepData>, count : Int){
