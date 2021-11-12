@@ -29,7 +29,9 @@ import android.os.ParcelUuid;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Surface;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,6 +77,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private View takePicture, previewContainer;
     private View left, right, up, down, zoomIn, zoomOut;
     private TextView status;
+    private Spinner velocity;
 
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mLeScanner;
@@ -128,6 +131,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         status = findViewById(R.id.status);
         status.setMovementMethod(new ScrollingMovementMethod());
 
+        String[] velocity_values = { "100", "300", "800", "1000", "2000"};
+        velocity = findViewById(R.id.velocity);
+        ArrayAdapter aa = new ArrayAdapter(this,android.R.layout.simple_spinner_item, velocity_values);
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        velocity.setAdapter(aa);
 
         enableControl(false);
 
@@ -264,7 +272,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     }
     @Override
     public void onClick(View view) {
-        int movement = 300;
+        String v = (String)velocity.getSelectedItem();
+        int movement = Integer.parseInt(v);
+      //  int movement = 300;
         int viewId = view.getId();
        if (viewId == takePicture.getId()){
             if (imageCapture != null ){
