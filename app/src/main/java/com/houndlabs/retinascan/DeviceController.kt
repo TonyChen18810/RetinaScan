@@ -120,14 +120,14 @@ class DeviceController() {
     fun moveX(v: Int){
         if (v > 0){
             val b2 = v
-            var b3: Int = 1
+            var b3: Int = 0
             if (b2 >  255){
                 b3 = b2 / 255
             }
             writeRx(0x05, b2.toByte(), b3.toByte())
         }else if (v<0){
             val b2 = v * -1;
-            var b3: Int = 1
+            var b3: Int = 0
             if (b2 >  255){
                 b3 = b2 / 255
             }
@@ -138,14 +138,14 @@ class DeviceController() {
     fun moveY(v: Int) {
         if (v> 0){
             val b2 = v
-            var b3: Int = 1
+            var b3: Int = 0
             if (b2 >  255){
                 b3 = b2 / 255
             }
             writeRx(0x08, b2.toByte(), b3.toByte())  // z
         }else if (v<0){
             val b2 = v * -1;
-            var b3: Int = 1
+            var b3: Int = 0
             if (b2 >  255){
                 b3 = b2 / 255
             }
@@ -155,14 +155,14 @@ class DeviceController() {
     fun moveZ(v: Int) {
         if (v> 0){
             val b2 = v
-            var b3: Int = 1
+            var b3: Int = 0
             if (b2 >  255){
                 b3 = b2 / 255
             }
             writeRx(0x11, b2.toByte(), b3.toByte())  // z
         }else if (v<0){
             val b2 = v * -1;
-            var b3: Int = 1
+            var b3: Int = 0
             if (b2 >  255){
                 b3 = b2 / 255
             }

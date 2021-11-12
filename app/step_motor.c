@@ -375,6 +375,7 @@ void loop(void)
     //ble.write(data1);
     //ble.write(data0);
 
+    char charBuf[128];
 
     //digitalWrite(LED_WHITE,HIGH);//initialize white LED off.  write LOW to turn on
     //digitalWrite(LED_IR,LOW);//initialize IR LED off.  write HIGH to turn on.  note potentiometer position if IR does not turn on.
@@ -421,8 +422,9 @@ void loop(void)
       comb=comb*256;
       comb|=data1;
        step_motor_fried(comb,0,0,0,0,0);
-       ble.write("Moved in -x");
 
+       String("Moved in -x " + String(comb)).toCharArray(charBuf, 128);
+        ble.write(charBuf);
     }
 
     if (data0==0x05) {
@@ -433,7 +435,9 @@ void loop(void)
       comb=comb*256;
       comb|=data1;
        step_motor_fried(comb,1,0,0,0,0);
-        ble.write("Moved in +x");
+
+      String("Moved in +x " + String(comb)).toCharArray(charBuf, 128);
+      ble.write(charBuf);
 
     }
 
@@ -450,7 +454,9 @@ void loop(void)
       comb=comb*256;
       comb|=data1;
        step_motor_fried(0,0,comb,0,0,0);
-        ble.write("Moved in -y");
+
+      String("Moved in -y " + String(comb)).toCharArray(charBuf, 128);
+      ble.write(charBuf);
 
     }
 
@@ -462,7 +468,9 @@ void loop(void)
       comb=comb*256;
       comb|=data1;
        step_motor_fried(0,0,comb,1,0,0);
-        ble.write("Moved in +y");
+
+      String("Moved in +y " + String(comb)).toCharArray(charBuf, 128);
+      ble.write(charBuf);
 
     }
     if (data0==0x09){
@@ -478,7 +486,9 @@ void loop(void)
       comb=comb*256;
       comb|=data1;
        step_motor_fried(0,0,0,0,comb,0);
-       ble.write("Moved in -z");
+
+      String("Moved in -z " + String(comb)).toCharArray(charBuf, 128);
+      ble.write(charBuf);
 
     }
 
@@ -490,7 +500,8 @@ void loop(void)
       comb=comb*256;
       comb|=data1;
       step_motor_fried(0,0,0,0,comb,1);
-      ble.write("Moved in -z");
+      String("Moved in +z " + String(comb)).toCharArray(charBuf, 128);
+      ble.write(charBuf);
 
     }
 

@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -263,7 +264,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     }
     @Override
     public void onClick(View view) {
-        int movement = 100;
+        int movement = 300;
         int viewId = view.getId();
        if (viewId == takePicture.getId()){
             if (imageCapture != null ){
@@ -457,7 +458,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            status.append(intent.getAction() + "\n");
+            //status.append(intent.getAction() + "\n");
 
             if (intent.getAction() == DEVICE_CONTROLL_CONNECTED) {
                // deviceController.connect(deviceAddess);
@@ -469,6 +470,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             }
             if (intent.getAction() == UartService.ACTION_GATT_DISCONNECTED) {
                 enableControl(false);
+            }
+            if (intent.getAction() == UartService.ACTION_DATA_AVAILABLE) {
+                byte[] data = intent.getByteArrayExtra(UartService.EXTRA_DATA);
+                String message = new String(data, StandardCharsets.UTF_8);
+                status.append(message + "\n");
             }
         }
     };
