@@ -389,8 +389,20 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                             byte[] bytes = new byte[buffer.capacity()];
                             buffer.get(bytes);
                             Bitmap bmp = Rotate(BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null), 90);
+
                             OutputStream outputStream = new FileOutputStream((getBatchDirectoryName() + mDateFormat.format(new Date()) + ".jpg"));
                             bmp.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+
+                            ImageAnalyzer analyzer = ImageAnalyzer.create(CameraActivity.this, 2);
+                            analyzer.analyze((bmp));
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    status.append("x=" +  (int) analyzer.result[0] + "\n");
+                                    status.append("y=" +  (int) analyzer.result[1] + "\n");
+                                }
+                            });
                         }
                         catch (Exception e) {
 
