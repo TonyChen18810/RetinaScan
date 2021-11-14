@@ -511,15 +511,20 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 enableControl(false);
             }
             if (intent.getAction() == UartService.ACTION_DATA_AVAILABLE) {
-                byte[] data = intent.getByteArrayExtra(UartService.EXTRA_DATA);
-                String message = new String(data, StandardCharsets.UTF_8);
-                status.append(message + "\n");
-                if (autoMode && (message.startsWith("Moved in +x") || message.startsWith("Moved in -x"))){
-                    deviceController.moveY(nextY);
-                }
-                if (autoMode && (message.startsWith("Moved in +y") || message.startsWith("Moved in -y"))){
-                    captureImage();
-                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        byte[] data = intent.getByteArrayExtra(UartService.EXTRA_DATA);
+                        String message = new String(data, StandardCharsets.UTF_8);
+                        status.append(message + "\n");
+                        if (autoMode && (message.startsWith("Moved in +x") || message.startsWith("Moved in -x"))){
+                            deviceController.moveY(nextY);
+                        }
+                        if (autoMode && (message.startsWith("Moved in +y") || message.startsWith("Moved in -y"))){
+                            captureImage();
+                        }
+                    }
+                });
             }
         }
     };
