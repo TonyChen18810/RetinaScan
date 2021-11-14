@@ -76,8 +76,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private ImageCapture imageCapture;
     private View takePicture, previewContainer;
     private View left, right, up, down, zoomIn, zoomOut;
+    private View auto;
     private TextView status;
     private Spinner velocity;
+
+    private Boolean autoMode = false;
 
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mLeScanner;
@@ -109,6 +112,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         previewContainer = findViewById(R.id.previewContainer);
         takePicture = findViewById(R.id.button_take_picture);
         takePicture.setOnClickListener(this);
+
+        auto = findViewById(R.id.auto);
+        auto.setOnClickListener(this);
 
         left = findViewById(R.id.left);
         left.setOnClickListener(this);
@@ -292,6 +298,10 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
            deviceController.moveZ(-1 * movement);
        } else if (viewId == zoomOut.getId()) {
            deviceController.moveZ(movement);
+       } else if (viewId == auto.getId()){
+           autoMode = !autoMode;
+           status.append("AI Mode " + (autoMode ? "ON" : "OFF") + "\n");
+           updateControls();
        }
     }
 
@@ -508,6 +518,18 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         down.setEnabled(flag);
         zoomIn.setEnabled(flag);
         zoomOut.setEnabled(flag);
+        auto.setEnabled(flag);
+    }
+
+    private void updateControls(){
+        Boolean flag = !autoMode;
+        left.setEnabled(flag);
+        right.setEnabled(flag);
+        up.setEnabled(flag);
+        down.setEnabled(flag);
+        zoomIn.setEnabled(flag);
+        zoomOut.setEnabled(flag);
+        takePicture.setEnabled(flag);
     }
 }
 

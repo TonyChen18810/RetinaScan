@@ -114,7 +114,7 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:layout_gravity="center"
-            android:src="@android:drawable/ic_menu_zoom"
+            android:src="@drawable/ai"
             android:id="@+id/auto"
             android:layout_width="64dp"
             android:layout_height="64dp"
