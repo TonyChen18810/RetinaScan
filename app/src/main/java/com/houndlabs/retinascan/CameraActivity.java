@@ -90,6 +90,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private static final long SCAN_PERIOD = 10000;
     private HashSet<String> addresses = new HashSet<String>();
 
+    private int nextX = 0, nextY = 0;
     private int REQUEST_CODE_PERMISSIONS = 1001;
     private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA",
             "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -302,6 +303,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
            autoMode = !autoMode;
            status.append("AI Mode " + (autoMode ? "ON" : "OFF") + "\n");
            updateControls();
+           if (autoMode){
+               captureImage();
+           }
        }
     }
 
@@ -409,8 +413,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    status.append("x=" +  (int) analyzer.result[0] + "\n");
-                                    status.append("y=" +  (int) analyzer.result[1] + "\n");
+                                    nextX = (int) analyzer.result[0];
+                                    nextY = (int) analyzer.result[1];
+                                    status.append("x=" + nextX + "\n");
+                                    status.append("y=" + nextY + "\n");
+                                    deviceController.moveX(nextX);
                                 }
                             });
                         }
@@ -507,6 +514,12 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 byte[] data = intent.getByteArrayExtra(UartService.EXTRA_DATA);
                 String message = new String(data, StandardCharsets.UTF_8);
                 status.append(message + "\n");
+                if (autoMode && (message.startsWith("Moved in +x") || message.startsWith("Moved in -x"))){
+                    deviceController.moveY(nextY);
+                }
+                if (autoMode && (message.startsWith("Moved in +y") || message.startsWith("Moved in -y"))){
+                    captureImage();
+                }
             }
         }
     };
