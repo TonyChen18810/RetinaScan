@@ -375,7 +375,8 @@ void loop(void)
     //ble.write(data1);
     //ble.write(data0);
 
-    char charBuf[128];
+    char charBuf[256];
+    memset(charBuf, 0, 256);
 
     //digitalWrite(LED_WHITE,HIGH);//initialize white LED off.  write LOW to turn on
     //digitalWrite(LED_IR,LOW);//initialize IR LED off.  write HIGH to turn on.  note potentiometer position if IR does not turn on.
@@ -423,7 +424,7 @@ void loop(void)
       comb|=data1;
        step_motor_fried(comb,0,0,0,0,0);
 
-       String("Moved in -x " + String(comb)).toCharArray(charBuf, 128);
+       String("Moved in -x " + String(comb)).toCharArray(charBuf, 256);
         ble.write(charBuf);
     }
 
@@ -436,7 +437,7 @@ void loop(void)
       comb|=data1;
        step_motor_fried(comb,1,0,0,0,0);
 
-      String("Moved in +x " + String(comb)).toCharArray(charBuf, 128);
+      String("Moved in +x " + String(comb)).toCharArray(charBuf, 256);
       ble.write(charBuf);
 
     }
@@ -455,7 +456,7 @@ void loop(void)
       comb|=data1;
        step_motor_fried(0,0,comb,0,0,0);
 
-      String("Moved in -y " + String(comb)).toCharArray(charBuf, 128);
+      String("Moved in -y " + String(comb)).toCharArray(charBuf, 256);
       ble.write(charBuf);
 
     }
@@ -469,7 +470,7 @@ void loop(void)
       comb|=data1;
        step_motor_fried(0,0,comb,1,0,0);
 
-      String("Moved in +y " + String(comb)).toCharArray(charBuf, 128);
+      String("Moved in +y " + String(comb)).toCharArray(charBuf, 256);
       ble.write(charBuf);
 
     }
@@ -487,7 +488,7 @@ void loop(void)
       comb|=data1;
        step_motor_fried(0,0,0,0,comb,0);
 
-      String("Moved in -z " + String(comb)).toCharArray(charBuf, 128);
+      String("Moved in -z " + String(comb)).toCharArray(charBuf, 256);
       ble.write(charBuf);
 
     }
@@ -500,7 +501,7 @@ void loop(void)
       comb=comb*256;
       comb|=data1;
       step_motor_fried(0,0,0,0,comb,1);
-      String("Moved in +z " + String(comb)).toCharArray(charBuf, 128);
+      String("Moved in +z " + String(comb)).toCharArray(charBuf, 256);
       ble.write(charBuf);
 
     }
